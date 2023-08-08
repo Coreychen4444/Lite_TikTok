@@ -33,8 +33,8 @@ func (s *UserService) Register(username, password string) (*model.User, string, 
 		return nil, "", errors.New("用户名或密码长度不能超过32位,请重新输入")
 	}
 	user, err := s.r.GetUserByName(username)
-	if err != nil {
-		return nil, "", err
+	if err != nil && err != gorm.ErrRecordNotFound {
+		return nil, "", fmt.Errorf("查找用户时出错")
 	}
 	//判断用户名是否存在
 	if user != nil {
@@ -44,18 +44,18 @@ func (s *UserService) Register(username, password string) (*model.User, string, 
 	//加密
 	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
 	if err != nil {
-		return nil, "", err
+		return nil, "", fmt.Errorf("设置的的密码格式有误")
 	}
 	newUser.Username = username
 	newUser.PasswordHash = string(hashedPassword)
 	//创建用户
 	user, err = s.r.CreateUsers(&newUser)
 	if err != nil {
-		return nil, "", err
+		return nil, "", fmt.Errorf("创建用户时出错")
 	}
 	token, tknerr := GenerateToken(user.ID)
 	if tknerr != nil {
-		return nil, "", fmt.Errorf("生成token时出错: %w", tknerr)
+		return nil, "", fmt.Errorf("生成token时出错")
 	}
 	return user, token, nil
 }
@@ -75,7 +75,7 @@ func (s *UserService) Login(username, password string) (*model.User, string, err
 		if err == gorm.ErrRecordNotFound {
 			return nil, "", fmt.Errorf("用户名不存在,请重新输入")
 		}
-		return nil, "", fmt.Errorf("查找用户时出错: %w", err)
+		return nil, "", fmt.Errorf("查找用户时出错")
 	}
 	//验证密码
 	err = bcrypt.CompareHashAndPassword([]byte(user.PasswordHash), []byte(password))
@@ -83,11 +83,11 @@ func (s *UserService) Login(username, password string) (*model.User, string, err
 		if err == bcrypt.ErrMismatchedHashAndPassword {
 			return nil, "", fmt.Errorf("密码错误,请重新输入")
 		}
-		return nil, "", fmt.Errorf("验证密码时出错: %w", err)
+		return nil, "", fmt.Errorf("验证密码时出错")
 	}
 	token, tknerr := GenerateToken(user.ID)
 	if tknerr != nil {
-		return nil, "", fmt.Errorf("生成token时出错: %w", tknerr)
+		return nil, "", fmt.Errorf("生成token时出错")
 	}
 	return user, token, nil
 }
@@ -96,14 +96,14 @@ func (s *UserService) Login(username, password string) (*model.User, string, err
 func (s *UserService) GetUserInfo(id int64, token string) (*model.User, error) {
 	_, err := VerifyToken(token)
 	if err != nil {
-		return nil, fmt.Errorf("验证token时出错: %w", err)
+		return nil, fmt.Errorf("token无效,请重新登录")
 	}
 	user, err := s.r.GetUserById(id)
 	if err != nil {
 		if err == gorm.ErrRecordNotFound {
 			return nil, fmt.Errorf("该用户不存在")
 		}
-		return nil, fmt.Errorf("查找用户时出错: %w", err)
+		return nil, fmt.Errorf("查找用户时出错")
 	}
 	return user, nil
 

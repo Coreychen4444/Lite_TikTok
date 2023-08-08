@@ -20,5 +20,8 @@ func InitRouter(db *gorm.DB) *gin.Engine {
 		user.POST("/login", userHandler.Login)
 		user.GET("/", userHandler.GetUserInfo)
 	}
+	videoService := service.NewVideoService(repo)
+	videoHandler := handler.NewVideoHandler(videoService)
+	r.GET("/douyin/feed", videoHandler.GetVideoFlow)
 	return r
 }

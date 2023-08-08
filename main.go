@@ -1,12 +1,11 @@
 package main
 
 import (
-	"log"
-
 	"github.com/Coreychen4444/Lite_TikTok/model"
 	"github.com/Coreychen4444/Lite_TikTok/routers"
 	"gorm.io/driver/mysql"
 	"gorm.io/gorm"
+	"log"
 )
 
 func main() {
@@ -17,7 +16,7 @@ func main() {
 		log.Fatal("failed to connect database")
 	}
 	// 自动迁移
-	db.AutoMigrate(&model.User{})
+	db.AutoMigrate(&model.User{}, &model.Video{})
 	// 注册路由
 	r := routers.InitRouter(db)
 	r.Run(":8080")
