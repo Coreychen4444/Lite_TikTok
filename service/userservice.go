@@ -3,11 +3,8 @@ package service
 import (
 	"errors"
 	"fmt"
-	"time"
-
 	"github.com/Coreychen4444/Lite_TikTok/model"
 	"github.com/Coreychen4444/Lite_TikTok/repository"
-	"github.com/dgrijalva/jwt-go"
 	"golang.org/x/crypto/bcrypt"
 	"gorm.io/gorm"
 )
@@ -109,45 +106,18 @@ func (s *UserService) GetUserInfo(id int64, token string) (*model.User, error) {
 
 }
 
-// 生成和验证token
-type Claims struct {
-	UserID int64
-	jwt.StandardClaims
-}
-
-var jwtKey = []byte("tokenkey")
-
-// 生成token
-func GenerateToken(id int64) (string, error) {
-	expirationTime := time.Now().Add(24 * time.Hour)
-	claims := &Claims{
-		UserID: id,
-		StandardClaims: jwt.StandardClaims{
-			ExpiresAt: expirationTime.Unix(),
-		},
-	}
-
-	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
-	return token.SignedString(jwtKey)
-}
-
-// 验证token
-func VerifyToken(tknStr string) (*Claims, error) {
-	claims := &Claims{}
-	tkn, err := jwt.ParseWithClaims(tknStr, claims, func(token *jwt.Token) (interface{}, error) {
-		return jwtKey, nil
-	})
-
+// 获取用户视频列表
+func (s *UserService) GetUserVideoList(id int64, token string) ([]model.Video, error) {
+	_, err := VerifyToken(token)
 	if err != nil {
-		if err == jwt.ErrSignatureInvalid {
-			return nil, fmt.Errorf("invalid JWT signature")
+		return nil, fmt.Errorf("token无效,请重新登录")
+	}
+	video, err := s.r.GetVideoListByUserId(id)
+	if err != nil {
+		if err == gorm.ErrRecordNotFound {
+			return nil, fmt.Errorf("该用户不存在")
 		}
-		return nil, fmt.Errorf("could not parse JWT token")
+		return nil, fmt.Errorf("获取视频失败")
 	}
-
-	if !tkn.Valid {
-		return nil, fmt.Errorf("invalid JWT token")
-	}
-
-	return claims, nil
+	return video, nil
 }
