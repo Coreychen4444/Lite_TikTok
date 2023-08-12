@@ -29,5 +29,6 @@ func InitRouter(db *gorm.DB) *gin.Engine {
 	r.POST("/douyin/favorite/action", videoHandler.LikeVideo)
 	r.GET("/douyin/favorite/list", videoHandler.GetUserLike)
 	r.POST("/douyin/comment/action", videoHandler.CommentVideo)
+	r.GET("/douyin/comment/list", videoHandler.GetVideoComment)
 	return r
 }
