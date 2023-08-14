@@ -92,7 +92,7 @@ func (s *UserService) Login(username, password string) (int64, string, error) {
 
 // 获取用户信息
 func (s *UserService) GetUserInfo(id int64, token string) (*model.User, error) {
-	_, err := VerifyToken(token)
+	clamis, err := VerifyToken(token)
 	if err != nil {
 		return nil, fmt.Errorf("token无效,请重新登录")
 	}
@@ -103,8 +103,13 @@ func (s *UserService) GetUserInfo(id int64, token string) (*model.User, error) {
 		}
 		return nil, fmt.Errorf("查找用户时出错")
 	}
+	// 判断是否关注该用户
+	isFollow, err := s.r.IsFollow(id, clamis.UserID)
+	if err != nil {
+		return nil, fmt.Errorf("查找用户时出错")
+	}
+	user.IsFollow = isFollow
 	return user, nil
-
 }
 
 // 获取用户视频列表

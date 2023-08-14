@@ -95,13 +95,13 @@ type GetUserInfoResponse struct {
 func (h *UserHandler) GetUserInfo(c *gin.Context) {
 	var req GetUserInfoRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"status_code": 1, "status_msg": err.Error()})
+		c.JSON(http.StatusBadRequest, gin.H{"status_code": 1, "status_msg": err.Error(), "user": nil})
 		return
 	}
 	id, converr := strconv.Atoi(req.UserID)
 	if converr != nil {
 		err := fmt.Errorf("用户id格式错误: %w", converr)
-		c.JSON(http.StatusBadRequest, gin.H{"status_code": 1, "status_msg": err.Error()})
+		c.JSON(http.StatusBadRequest, gin.H{"status_code": 1, "status_msg": err.Error(), "user": nil})
 		return
 	}
 	user, err := h.s.GetUserInfo(int64(id), req.Token)
@@ -114,7 +114,7 @@ func (h *UserHandler) GetUserInfo(c *gin.Context) {
 		} else if err.Error() == "查找用户时出错" {
 			respCode = http.StatusInternalServerError
 		}
-		c.JSON(respCode, gin.H{"status_code": 1, "status_msg": err.Error()})
+		c.JSON(respCode, gin.H{"status_code": 1, "status_msg": err.Error(), "user": nil})
 		return
 	}
 	statusMsg := "获取用户信息成功"

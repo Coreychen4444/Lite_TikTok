@@ -61,6 +61,19 @@ func (r *DbRepository) GetFollowList(userID int64) ([]model.User, error) {
 	return followings, nil
 }
 
+// 判断是否关注
+func (r *DbRepository) IsFollow(authorID, fansID int64) (bool, error) {
+	var relation model.Relation
+	err := r.db.Where("author_id = ? and fans_id = ?", authorID, fansID).First(&relation).Error
+	if err != nil {
+		if err == gorm.ErrRecordNotFound {
+			return false, nil
+		}
+		return false, err
+	}
+	return true, nil
+}
+
 // 获取用户粉丝列表
 func (r *DbRepository) GetFansList(userID int64) ([]model.User, error) {
 	var follower_id []int64
