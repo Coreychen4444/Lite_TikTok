@@ -3,6 +3,7 @@ package service
 import (
 	"errors"
 	"fmt"
+
 	"github.com/Coreychen4444/Lite_TikTok/model"
 	"github.com/Coreychen4444/Lite_TikTok/repository"
 	"golang.org/x/crypto/bcrypt"
@@ -18,75 +19,75 @@ func NewUserService(r *repository.DbRepository) *UserService {
 }
 
 // 注册
-func (s *UserService) Register(username, password string) (*model.User, string, error) {
+func (s *UserService) Register(username, password string) (int64, string, error) {
 	//校验
 	if len(username) == 0 || len(password) == 0 {
-		return nil, "", errors.New("用户名或密码不能为空,请重新输入")
+		return -1, "", errors.New("用户名或密码不能为空,请重新输入")
 	}
 	if len(password) < 6 {
-		return nil, "", errors.New("密码长度不能小于6位,请重新输入")
+		return -1, "", errors.New("密码长度不能小于6位,请重新输入")
 	}
 	if len(username) > 32 || len(password) > 32 {
-		return nil, "", errors.New("用户名或密码长度不能超过32位,请重新输入")
+		return -1, "", errors.New("用户名或密码长度不能超过32位,请重新输入")
 	}
 	user, err := s.r.GetUserByName(username)
 	if err != nil && err != gorm.ErrRecordNotFound {
-		return nil, "", fmt.Errorf("查找用户时出错")
+		return -1, "", fmt.Errorf("查找用户时出错")
 	}
 	//判断用户名是否存在
 	if user != nil {
-		return nil, "", errors.New("用户名已存在,请重新输入")
+		return -1, "", errors.New("用户名已存在,请重新输入")
 	}
 	var newUser model.User
 	//加密
 	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
 	if err != nil {
-		return nil, "", fmt.Errorf("设置的的密码格式有误")
+		return -1, "", fmt.Errorf("设置的的密码格式有误")
 	}
 	newUser.Username = username
 	newUser.PasswordHash = string(hashedPassword)
 	//创建用户
-	user, err = s.r.CreateUsers(&newUser)
+	id, err := s.r.CreateUsers(&newUser)
 	if err != nil {
-		return nil, "", fmt.Errorf("创建用户时出错")
+		return -1, "", fmt.Errorf("创建用户时出错")
 	}
 	token, tknerr := GenerateToken(user.ID)
 	if tknerr != nil {
-		return nil, "", fmt.Errorf("生成token时出错")
+		return -1, "", fmt.Errorf("生成token时出错")
 	}
-	return user, token, nil
+	return id, token, nil
 }
 
 // 登录
-func (s *UserService) Login(username, password string) (*model.User, string, error) {
+func (s *UserService) Login(username, password string) (int64, string, error) {
 	//校验输入
 	if len(username) == 0 || len(password) == 0 {
-		return nil, "", fmt.Errorf("用户名或密码不能为空,请重新输入")
+		return -1, "", fmt.Errorf("用户名或密码不能为空,请重新输入")
 	}
 	if len(username) > 32 || len(password) > 32 {
-		return nil, "", fmt.Errorf("用户名或密码长度不能超过32位,请重新输入")
+		return -1, "", fmt.Errorf("用户名或密码长度不能超过32位,请重新输入")
 	}
 	//查找用户
 	user, err := s.r.GetUserByName(username)
 	if err != nil {
 		if err == gorm.ErrRecordNotFound {
-			return nil, "", fmt.Errorf("用户名不存在,请重新输入")
+			return -1, "", fmt.Errorf("用户名不存在,请重新输入")
 		}
-		return nil, "", fmt.Errorf("查找用户时出错")
+		return -1, "", fmt.Errorf("查找用户时出错")
 	}
 	//验证密码
 	err = bcrypt.CompareHashAndPassword([]byte(user.PasswordHash), []byte(password))
 	if err != nil {
 		if err == bcrypt.ErrMismatchedHashAndPassword {
-			return nil, "", fmt.Errorf("密码错误,请重新输入")
+			return -1, "", fmt.Errorf("密码错误,请重新输入")
 		}
-		return nil, "", fmt.Errorf("验证密码时出错")
+		return -1, "", fmt.Errorf("验证密码时出错")
 	}
 	token, tknerr := GenerateToken(user.ID)
 	if tknerr != nil {
-		return nil, "", fmt.Errorf("生成token时出错")
+		return -1, "", fmt.Errorf("生成token时出错")
 	}
-	return user, token, nil
+	return user.ID, token, nil
 }
 
 // 获取用户信息

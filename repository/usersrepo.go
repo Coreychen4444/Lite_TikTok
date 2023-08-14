@@ -14,12 +14,11 @@ func NewDbRepository(db *gorm.DB) *DbRepository {
 }
 
 // 创建用户
-func (r *DbRepository) CreateUsers(user *model.User) (*model.User, error) {
-	result := r.db.Create(user)
-	if result.Error != nil {
-		return nil, result.Error
+func (r *DbRepository) CreateUsers(user *model.User) (int64, error) {
+	if err := r.db.Create(&user).Error; err != nil {
+		return -1, err
 	}
-	return user, nil
+	return user.ID, nil
 }
 
 // 根据用户名获取用户

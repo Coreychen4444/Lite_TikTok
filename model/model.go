@@ -49,3 +49,10 @@ type Comment struct {
 	UserID     int64  `json:"-"`                             // 评论用户id,外键用于关联User表
 	User       User   `json:"user" gorm:"foreignKey:UserID"` // 评论用户信息
 }
+
+// relation
+type Relation struct {
+	ID       int64 `json:"id" gorm:"primaryKey"`      // 关注记录唯一标识
+	AuthorID int64 `json:"following_id" gorm:"index"` // 作者ID
+	FansID   int64 `json:"follower_id" gorm:"index"`  // 粉丝ID
+}

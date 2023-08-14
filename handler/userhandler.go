@@ -34,23 +34,23 @@ type RegisterResponse struct {
 func (h *UserHandler) Register(c *gin.Context) {
 	var req RegisterRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"status_code": 1, "status_msg": err.Error()})
+		c.JSON(http.StatusBadRequest, gin.H{"status_code": 1, "status_msg": err.Error(), "token": "", "user_id": -1})
 		return
 	}
-	user, token, err := h.s.Register(req.Username, req.Password)
+	user_id, token, err := h.s.Register(req.Username, req.Password)
 	if err != nil {
 		respCode := http.StatusBadRequest
 		if err.Error() == "生成token时出错" {
 			respCode = http.StatusInternalServerError
 		}
-		c.JSON(respCode, gin.H{"status_code": 1, "status_msg": err.Error()})
+		c.JSON(respCode, gin.H{"status_code": 1, "status_msg": err.Error(), "token": "", "user_id": -1})
 		return
 	}
 	resp := &RegisterResponse{
 		StatusCode: 0,
 		StatusMsg:  "注册成功",
 		Token:      token,
-		UserID:     user.ID,
+		UserID:     user_id,
 	}
 	c.JSON(http.StatusOK, resp)
 }
@@ -59,23 +59,23 @@ func (h *UserHandler) Register(c *gin.Context) {
 func (h *UserHandler) Login(c *gin.Context) {
 	var req RegisterRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"status_code": 1, "status_msg": err.Error()})
+		c.JSON(http.StatusBadRequest, gin.H{"status_code": 1, "status_msg": err.Error(), "token": "", "user_id": -1})
 		return
 	}
-	user, token, err := h.s.Login(req.Username, req.Password)
+	user_id, token, err := h.s.Login(req.Username, req.Password)
 	if err != nil {
 		respCode := http.StatusBadRequest
 		if err.Error() == "生成token时出错" || err.Error() == "验证密码时出错" || err.Error() == "查找用户时出错" {
 			respCode = http.StatusInternalServerError
 		}
-		c.JSON(respCode, gin.H{"status_code": 1, "status_msg": err.Error()})
+		c.JSON(respCode, gin.H{"status_code": 1, "status_msg": err.Error(), "token": "", "user_id": -1})
 		return
 	}
 	resp := &RegisterResponse{
 		StatusCode: 0,
 		StatusMsg:  "登录成功",
 		Token:      token,
-		UserID:     user.ID,
+		UserID:     user_id,
 	}
 	c.JSON(http.StatusOK, resp)
 }

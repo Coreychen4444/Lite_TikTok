@@ -30,5 +30,14 @@ func InitRouter(db *gorm.DB) *gin.Engine {
 	r.GET("/douyin/favorite/list", videoHandler.GetUserLike)
 	r.POST("/douyin/comment/action", videoHandler.CommentVideo)
 	r.GET("/douyin/comment/list", videoHandler.GetVideoComment)
+	relationService := service.NewRelationService(repo)
+	relationHandler := handler.NewRelationHandler(relationService)
+	relation := r.Group("/douyin/relation")
+	{
+		relation.POST("/action", relationHandler.FollowOrCancel)
+		relation.GET("/follow/list", relationHandler.GetFollowings)
+		relation.GET("/follower/list", relationHandler.GetFollowers)
+		relation.GET("/friend/list", relationHandler.GetFriends)
+	}
 	return r
 }

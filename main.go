@@ -17,7 +17,7 @@ func main() {
 		log.Fatal("failed to connect database")
 	}
 	// 自动迁移
-	err = db.AutoMigrate(&model.User{}, &model.Video{})
+	err = db.AutoMigrate(&model.User{}, &model.Video{}, &model.VideoLike{}, &model.Comment{}, &model.Relation{})
 	if err != nil {
 		log.Fatal("failed to migrate database")
 	}
