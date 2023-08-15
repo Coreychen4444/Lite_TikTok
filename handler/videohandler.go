@@ -2,6 +2,8 @@ package handler
 
 import (
 	"net/http"
+	"strconv"
+	"time"
 
 	"github.com/Coreychen4444/Lite_TikTok/model"
 	"github.com/Coreychen4444/Lite_TikTok/service"
@@ -35,7 +37,7 @@ func (h *VideoHandler) GetVideoFlow(c *gin.Context) {
 		return
 	}
 	if req.LatestTime == nil {
-		latestTime := ""
+		latestTime := strconv.FormatInt(time.Now().Unix(), 10)
 		req.LatestTime = &latestTime
 	}
 	if req.Token == nil {

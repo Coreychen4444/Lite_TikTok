@@ -11,7 +11,7 @@ import (
 
 func main() {
 	// 连接数据库(用户名和密码自己改)
-	dsn := "root:44447777@tcp(:3306)/tiktok?charset=utf8mb4&parseTime=True&loc=Local"
+	dsn := "root:44447777@tcp(:3306)/tiktok_db?charset=utf8mb4&parseTime=True&loc=Local"
 	db, err := gorm.Open(mysql.Open(dsn), &gorm.Config{})
 	if err != nil {
 		log.Fatal("failed to connect database")
