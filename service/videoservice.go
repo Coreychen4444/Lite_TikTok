@@ -25,7 +25,11 @@ func NewVideoService(r *repository.DbRepository) *VideoService {
 
 // 获取视频列表
 func (s *VideoService) GetVideoFlow(latest_time, token string) ([]model.Video, error) {
-	video, err := s.r.GetVideoList(latest_time)
+	latestTime, err := strconv.ParseInt(latest_time, 10, 64)
+	if err != nil {
+		return nil, fmt.Errorf("时间戳格式错误")
+	}
+	video, err := s.r.GetVideoList(latestTime)
 	if err != nil {
 		return nil, fmt.Errorf("获取视频失败")
 	}
@@ -102,7 +106,7 @@ func (s *VideoService) PublishVideo(fileHeader *multipart.FileHeader, title stri
 		UserID:      claims.UserID,
 		PlayURL:     fmt.Sprintf("/public/videofile/%s", uniqueFileName),
 		CoverURL:    fmt.Sprintf("/public/cover/%s.jpg", uniqueNameWithoutExt),
-		PublishedAt: time.Now().UTC(),
+		PublishedAt: time.Now().UTC().Unix(),
 	}
 	err = s.r.CreateVideo(video)
 	if err != nil {
@@ -200,13 +204,11 @@ func (s *VideoService) CommentVideo(token, video_id string, content *string) (*m
 		return nil, fmt.Errorf("视频出错")
 	}
 	// 创建评论
-	now := time.Now()
-	formattedDate := now.Format("01-02") // 01代表月份，02代表日期
 	comment := &model.Comment{
 		Video_id:   int64(id),
 		UserID:     claims.UserID,
 		Content:    *content,
-		CreateDate: formattedDate,
+		CreateDate: time.Now().Format("01-02"),
 	}
 	comment, err = s.r.CreateComment(comment)
 	if err != nil {

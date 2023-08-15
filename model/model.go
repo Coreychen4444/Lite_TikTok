@@ -1,7 +1,5 @@
 package model
 
-import "time"
-
 // User
 type User struct {
 	ID              int64  `json:"id"`               // 用户id
@@ -21,16 +19,16 @@ type User struct {
 
 // Video
 type Video struct {
-	ID            int64     `json:"id" gorm:"primaryKey"`            // 视频唯一标识
-	Author        User      `json:"author" gorm:"foreignKey:UserID"` // 视频作者信息
-	Title         string    `json:"title"`                           // 视频标题
-	PlayURL       string    `json:"play_url"`                        // 视频播放地址
-	CoverURL      string    `json:"cover_url"`                       // 视频封面地址
-	FavoriteCount int64     `json:"favorite_count"`                  // 视频的点赞总数
-	CommentCount  int64     `json:"comment_count"`                   // 视频的评论总数
-	IsFavorite    bool      `json:"is_favorite"`                     // true-已点赞，false-未点赞
-	PublishedAt   time.Time `json:"published_at" gorm:"index"`       // 视频发布时间
-	UserID        int64     `json:"-"`                               // 视频作者id
+	ID            int64  `json:"id" gorm:"primaryKey"`            // 视频唯一标识
+	Author        User   `json:"author" gorm:"foreignKey:UserID"` // 视频作者信息
+	Title         string `json:"title"`                           // 视频标题
+	PlayURL       string `json:"play_url"`                        // 视频播放地址
+	CoverURL      string `json:"cover_url"`                       // 视频封面地址
+	FavoriteCount int64  `json:"favorite_count"`                  // 视频的点赞总数
+	CommentCount  int64  `json:"comment_count"`                   // 视频的评论总数
+	IsFavorite    bool   `json:"is_favorite"`                     // true-已点赞，false-未点赞
+	PublishedAt   int64  `json:"published_at" gorm:"index"`       // 视频发布时间
+	UserID        int64  `json:"-"`                               // 视频作者id
 }
 
 // VideoLike
@@ -55,4 +53,13 @@ type Relation struct {
 	ID       int64 `json:"id" gorm:"primaryKey"`      // 关注记录唯一标识
 	AuthorID int64 `json:"following_id" gorm:"index"` // 作者ID
 	FansID   int64 `json:"follower_id" gorm:"index"`  // 粉丝ID
+}
+
+// message
+type Message struct {
+	ID         int64  `json:"id"`           // 消息id
+	FromUserID int64  `json:"from_user_id"` // 消息发送者id
+	ToUserID   int64  `json:"to_user_id"`   // 消息接收者id
+	Content    string `json:"content"`      // 消息内容
+	CreateTime int64  `json:"create_time"`  // 消息发送时间 yyyy-MM-dd HH:MM:ss
 }

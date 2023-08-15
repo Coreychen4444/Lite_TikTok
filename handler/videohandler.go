@@ -31,7 +31,7 @@ type GetVideoFlowResponse struct {
 func (h *VideoHandler) GetVideoFlow(c *gin.Context) {
 	var req GetVideoFlowRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"status_code": 1, "status_msg": err.Error()})
+		c.JSON(http.StatusBadRequest, gin.H{"status_code": 1, "status_msg": err.Error(), "video_list": nil, "next_time": nil})
 		return
 	}
 	if req.LatestTime == nil {
@@ -50,9 +50,13 @@ func (h *VideoHandler) GetVideoFlow(c *gin.Context) {
 	}
 	video, err := h.s.GetVideoFlow(*req.LatestTime, *req.Token)
 	if err != nil {
+		respCode := http.StatusBadRequest
 		errMsg := err.Error()
+		if errMsg == "获取视频失败" {
+			respCode = http.StatusInternalServerError
+		}
 		resp.StatusMsg = &errMsg
-		c.JSON(http.StatusBadRequest, resp)
+		c.JSON(respCode, resp)
 		return
 	}
 	resp.StatusCode = 0
@@ -65,7 +69,7 @@ func (h *VideoHandler) GetVideoFlow(c *gin.Context) {
 		return
 	}
 	resp.VideoList = video
-	nextTime := video[len(video)-1].PublishedAt.Unix()
+	nextTime := video[len(video)-1].PublishedAt
 	resp.NextTime = &nextTime
 	resp.StatusMsg = nil
 	c.JSON(http.StatusOK, resp)

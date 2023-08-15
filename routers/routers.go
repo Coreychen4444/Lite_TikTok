@@ -39,5 +39,9 @@ func InitRouter(db *gorm.DB) *gin.Engine {
 		relation.GET("/follower/list", relationHandler.GetFollowers)
 		relation.GET("/friend/list", relationHandler.GetFriends)
 	}
+	messageService := service.NewMessageService(repo)
+	messageHandler := handler.NewMessageHandler(messageService)
+	r.GET("/douyin/message/chat", messageHandler.GetChatMessages)
+	r.POST("/douyin/message/action", messageHandler.SendMessage)
 	return r
 }

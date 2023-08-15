@@ -7,7 +7,7 @@ import (
 
 // 获取视频列表
 
-func (r *DbRepository) GetVideoList(latest_time string) ([]model.Video, error) {
+func (r *DbRepository) GetVideoList(latest_time int64) ([]model.Video, error) {
 	var videos []model.Video
 	err := r.db.Preload("Author").Where("published_at < ?", latest_time).Order("published_at desc").Limit(10).Find(&videos).Error
 	if err != nil {
