@@ -47,13 +47,12 @@ type SendMessageRequest struct {
 
 // 发送消息
 func (h *MessageHandler) SendMessage(c *gin.Context) {
-	var req SendMessageRequest
-	if err := c.ShouldBindJSON(&req); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"status_code": 1, "status_msg": "参数错误"})
-		return
-	}
-	if req.ActionType == "1" {
-		err := h.s.SendMessage(req.Token, req.ToUserID, req.Content)
+	token := c.Query("token")
+	to_user_id := c.Query("to_user_id")
+	action_type := c.Query("action_type")
+	content := c.Query("content")
+	if action_type == "1" {
+		err := h.s.SendMessage(token, to_user_id, content)
 		if err != nil {
 			respCode := http.StatusBadRequest
 			if err.Error() == "token无效,请重新登录" {

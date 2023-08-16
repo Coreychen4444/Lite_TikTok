@@ -192,7 +192,7 @@ func (s *VideoService) GetUserLike(token, user_id string) ([]model.Video, error)
 }
 
 // 评论视频
-func (s *VideoService) CommentVideo(token, video_id string, content *string) (*model.Comment, error) {
+func (s *VideoService) CommentVideo(token, video_id string, content string) (*model.Comment, error) {
 	// 校验token
 	claims, err := VerifyToken(token)
 	if err != nil {
@@ -207,7 +207,7 @@ func (s *VideoService) CommentVideo(token, video_id string, content *string) (*m
 	comment := &model.Comment{
 		Video_id:   int64(id),
 		UserID:     claims.UserID,
-		Content:    *content,
+		Content:    content,
 		CreateDate: time.Now().Format("01-02"),
 	}
 	comment, err = s.r.CreateComment(comment)

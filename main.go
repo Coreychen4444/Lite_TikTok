@@ -14,7 +14,7 @@ func main() {
 	dsn := "root:44447777@tcp(:3306)/tiktok_db?charset=utf8mb4&parseTime=True&loc=Local"
 	db, err := gorm.Open(mysql.Open(dsn), &gorm.Config{})
 	if err != nil {
-		log.Fatal("failed to connect database")
+		log.Fatal(err.Error() + ", failed to connect database")
 	}
 	// 自动迁移
 	err = db.AutoMigrate(&model.User{}, &model.Video{}, &model.VideoLike{}, &model.Comment{}, &model.Relation{}, &model.Message{})

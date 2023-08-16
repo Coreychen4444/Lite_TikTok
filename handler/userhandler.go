@@ -18,11 +18,6 @@ func NewUserHandler(s *service.UserService) *UserHandler {
 	return &UserHandler{s: s}
 }
 
-type RegisterRequest struct {
-	Username string `json:"username"` // 注册用户名，最长32个字符
-	Password string `json:"password"` // 密码，最长32个字符
-}
-
 type RegisterResponse struct {
 	StatusCode int64  `json:"status_code"` // 状态码，0-成功，其他值-失败
 	StatusMsg  string `json:"status_msg"`  // 返回状态描述
@@ -32,12 +27,9 @@ type RegisterResponse struct {
 
 // 处理注册请求
 func (h *UserHandler) Register(c *gin.Context) {
-	var req RegisterRequest
-	if err := c.ShouldBindJSON(&req); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"status_code": 1, "status_msg": err.Error(), "token": "", "user_id": -1})
-		return
-	}
-	user_id, token, err := h.s.Register(req.Username, req.Password)
+	username := c.Query("username")
+	password := c.Query("password")
+	user_id, token, err := h.s.Register(username, password)
 	if err != nil {
 		respCode := http.StatusBadRequest
 		if err.Error() == "生成token时出错" {
@@ -57,12 +49,9 @@ func (h *UserHandler) Register(c *gin.Context) {
 
 // 处理登录请求
 func (h *UserHandler) Login(c *gin.Context) {
-	var req RegisterRequest
-	if err := c.ShouldBindJSON(&req); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"status_code": 1, "status_msg": err.Error(), "token": "", "user_id": -1})
-		return
-	}
-	user_id, token, err := h.s.Login(req.Username, req.Password)
+	username := c.Query("username")
+	password := c.Query("password")
+	user_id, token, err := h.s.Login(username, password)
 	if err != nil {
 		respCode := http.StatusBadRequest
 		if err.Error() == "生成token时出错" || err.Error() == "验证密码时出错" || err.Error() == "查找用户时出错" {
@@ -80,11 +69,6 @@ func (h *UserHandler) Login(c *gin.Context) {
 	c.JSON(http.StatusOK, resp)
 }
 
-type GetUserInfoRequest struct {
-	Token  string `json:"token"`   // 用户鉴权token
-	UserID string `json:"user_id"` // 用户id
-}
-
 type GetUserInfoResponse struct {
 	StatusCode int64       `json:"status_code"` // 状态码，0-成功，其他值-失败
 	StatusMsg  *string     `json:"status_msg"`  // 返回状态描述
@@ -93,18 +77,15 @@ type GetUserInfoResponse struct {
 
 // 处理获取用户信息请求
 func (h *UserHandler) GetUserInfo(c *gin.Context) {
-	var req GetUserInfoRequest
-	if err := c.ShouldBindJSON(&req); err != nil {
+	user_id := c.Query("user_id")
+	token := c.Query("token")
+	id, err := strconv.ParseInt(user_id, 10, 64)
+	if err != nil {
+		err := fmt.Errorf("用户id格式错误: %w", err)
 		c.JSON(http.StatusBadRequest, gin.H{"status_code": 1, "status_msg": err.Error(), "user": nil})
 		return
 	}
-	id, converr := strconv.Atoi(req.UserID)
-	if converr != nil {
-		err := fmt.Errorf("用户id格式错误: %w", converr)
-		c.JSON(http.StatusBadRequest, gin.H{"status_code": 1, "status_msg": err.Error(), "user": nil})
-		return
-	}
-	user, err := h.s.GetUserInfo(int64(id), req.Token)
+	user, err := h.s.GetUserInfo(id, token)
 	if err != nil {
 		respCode := http.StatusBadRequest
 		if err.Error() == "token无效,请重新登录" {
@@ -130,12 +111,12 @@ func (h *UserHandler) GetUserInfo(c *gin.Context) {
 func (h *UserHandler) GetUserVideoList(c *gin.Context) {
 	token := c.Query("token")
 	userID := c.Query("user_id")
-	id, err := strconv.Atoi(userID)
+	id, err := strconv.ParseInt(userID, 10, 64)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"status_code": 1, "status_msg": "用户id格式错误", "video_list": nil})
 		return
 	}
-	video, err := h.s.GetUserVideoList(int64(id), token)
+	video, err := h.s.GetUserVideoList(id, token)
 	if err != nil {
 		respCode := http.StatusBadRequest
 		if err.Error() == "token无效,请重新登录" {

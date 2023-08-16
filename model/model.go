@@ -1,5 +1,11 @@
 package model
 
+import (
+	"strconv"
+
+	"gorm.io/gorm"
+)
+
 // User
 type User struct {
 	ID              int64  `json:"id"`               // 用户id
@@ -15,6 +21,12 @@ type User struct {
 	WorkCount       int64  `json:"work_count"`       // 作品数
 	Username        string `json:"-" gorm:"unique"`  // 注册用户名，最长32个字符
 	PasswordHash    string `json:"-"`                // 密码，最长32个字符   service层完成对应的逻辑操作
+}
+
+func (u *User) AfterCreate(tx *gorm.DB) (err error) {
+	u.Name = "用户" + strconv.FormatInt(u.ID, 10)
+	u.Signature = "谢谢你的关注"
+	return tx.Model(u).Updates(User{Name: u.Name, Signature: u.Signature}).Error
 }
 
 // Video

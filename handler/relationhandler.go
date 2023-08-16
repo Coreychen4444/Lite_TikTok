@@ -15,20 +15,12 @@ func NewRelationHandler(s *service.RelationService) *RelationHandler {
 	return &RelationHandler{s: s}
 }
 
-type FollowOrCancelReq struct {
-	ActionType string `json:"action_type"` // 1-关注，2-取消关注
-	ToUserID   string `json:"to_user_id"`  // 对方用户id
-	Token      string `json:"token"`       // 用户鉴权token
-}
-
 // 关注或取消关注
 func (h *RelationHandler) FollowOrCancel(c *gin.Context) {
-	var req FollowOrCancelReq
-	if err := c.ShouldBindJSON(&req); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"status_code": 1, "status_msg": err.Error()})
-		return
-	}
-	err := h.s.FollowOrCancel(req.Token, req.ToUserID, req.ActionType)
+	token := c.Query("token")
+	to_user_id := c.Query("to_user_id")
+	action_type := c.Query("action_type")
+	err := h.s.FollowOrCancel(token, to_user_id, action_type)
 	if err != nil {
 		respCode := http.StatusBadRequest
 		if err.Error() == "token无效,请重新登录" {
@@ -39,7 +31,7 @@ func (h *RelationHandler) FollowOrCancel(c *gin.Context) {
 		c.JSON(respCode, gin.H{"status_code": 1, "status_msg": err.Error()})
 		return
 	}
-	if req.ActionType == "1" {
+	if action_type == "1" {
 		c.JSON(http.StatusOK, gin.H{"status_code": 0, "status_msg": "关注成功"})
 		return
 	}

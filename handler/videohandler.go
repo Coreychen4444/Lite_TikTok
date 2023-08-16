@@ -18,11 +18,6 @@ func NewVideoHandler(s *service.VideoService) *VideoHandler {
 	return &VideoHandler{s: s}
 }
 
-type GetVideoFlowRequest struct {
-	LatestTime *string `json:"latest_time,omitempty"` // 可选参数，限制返回视频的最新投稿时间戳，精确到秒，不填表示当前时间
-	Token      *string `json:"token,omitempty"`       // 用户登录状态下设置
-}
-
 type GetVideoFlowResponse struct {
 	NextTime   *int64        `json:"next_time"`   // 本次返回的视频中，发布最早的时间，作为下次请求时的latest_time
 	StatusCode int64         `json:"status_code"` // 状态码，0-成功，其他值-失败
@@ -31,18 +26,10 @@ type GetVideoFlowResponse struct {
 }
 
 func (h *VideoHandler) GetVideoFlow(c *gin.Context) {
-	var req GetVideoFlowRequest
-	if err := c.ShouldBindJSON(&req); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"status_code": 1, "status_msg": err.Error(), "video_list": nil, "next_time": nil})
-		return
-	}
-	if req.LatestTime == nil {
-		latestTime := strconv.FormatInt(time.Now().Unix(), 10)
-		req.LatestTime = &latestTime
-	}
-	if req.Token == nil {
-		token := ""
-		req.Token = &token
+	latest_time := c.Query("latest_time")
+	token := c.Query("token")
+	if latest_time == "" {
+		latest_time = strconv.FormatInt(time.Now().Unix(), 10)
 	}
 	resp := &GetVideoFlowResponse{
 		StatusCode: 1,
@@ -50,7 +37,7 @@ func (h *VideoHandler) GetVideoFlow(c *gin.Context) {
 		VideoList:  nil,
 		NextTime:   nil,
 	}
-	video, err := h.s.GetVideoFlow(*req.LatestTime, *req.Token)
+	video, err := h.s.GetVideoFlow(latest_time, token)
 	if err != nil {
 		respCode := http.StatusBadRequest
 		errMsg := err.Error()
@@ -102,20 +89,12 @@ func (h *VideoHandler) PublishVideo(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"status_code": 0, "status_msg": "发布视频成功"})
 }
 
-type LikeVideoRequest struct {
-	ActionType string `json:"action_type"` // 1-点赞，2-取消点赞
-	Token      string `json:"token"`       // 用户鉴权token
-	VideoID    string `json:"video_id"`    // 视频id
-}
-
 // 点赞视频和取消点赞
 func (h *VideoHandler) LikeVideo(c *gin.Context) {
-	var req LikeVideoRequest
-	if err := c.ShouldBindJSON(&req); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"status_code": 1, "status_msg": err.Error()})
-		return
-	}
-	err := h.s.LikeVideo(req.Token, req.VideoID, req.ActionType)
+	token := c.Query("token")
+	video_id := c.Query("video_id")
+	action_type := c.Query("action_type")
+	err := h.s.LikeVideo(token, video_id, action_type)
 	if err != nil {
 		respCode := http.StatusBadRequest
 		if err.Error() == "token无效, 请重新登录" {
@@ -156,22 +135,13 @@ func (h *VideoHandler) GetUserLike(c *gin.Context) {
 }
 
 // 评论视频和删除评论
-type CommentRequest struct {
-	ActionType  string  `json:"action_type"`            // 1-发布评论，2-删除评论
-	CommentID   *string `json:"comment_id,omitempty"`   // 要删除的评论id，在action_type=2的时候使用
-	CommentText *string `json:"comment_text,omitempty"` // 用户填写的评论内容，在action_type=1的时候使用
-	Token       string  `json:"token"`                  // 用户鉴权token
-	VideoID     string  `json:"video_id"`               // 视频id
-}
-
 func (h *VideoHandler) CommentVideo(c *gin.Context) {
-	var req CommentRequest
-	if err := c.ShouldBindJSON(&req); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"status_code": 1, "status_msg": err.Error()})
-		return
-	}
-	if req.ActionType == "1" {
-		comment, err := h.s.CommentVideo(req.Token, req.VideoID, req.CommentText)
+	token := c.Query("token")
+	video_id := c.Query("video_id")
+	action_type := c.Query("action_type")
+	if action_type == "1" {
+		comment_text := c.Query("comment_text")
+		comment, err := h.s.CommentVideo(token, video_id, comment_text)
 		if err != nil {
 			respCode := http.StatusBadRequest
 			if err.Error() == "token无效, 请重新登录" {
@@ -189,8 +159,9 @@ func (h *VideoHandler) CommentVideo(c *gin.Context) {
 		}
 		c.JSON(http.StatusOK, gin.H{"status_code": 0, "status_msg": "评论成功", "comment": comment})
 	}
-	if req.ActionType == "2" {
-		err := h.s.DeleteComment(req.Token, *req.CommentID)
+	if action_type == "2" {
+		comment_id := c.Query("comment_id")
+		err := h.s.DeleteComment(token, comment_id)
 		if err != nil {
 			respCode := http.StatusBadRequest
 			if err.Error() == "token无效, 请重新登录" {
