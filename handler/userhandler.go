@@ -32,7 +32,7 @@ func (h *UserHandler) Register(c *gin.Context) {
 	user_id, token, err := h.s.Register(username, password)
 	if err != nil {
 		respCode := http.StatusBadRequest
-		if err.Error() == "生成token时出错" {
+		if err.Error() == "生成token时出错" || err.Error() == "查找用户时出错" || err.Error() == "创建用户时出错" {
 			respCode = http.StatusInternalServerError
 		}
 		c.JSON(respCode, gin.H{"status_code": 1, "status_msg": err.Error(), "token": "", "user_id": -1})

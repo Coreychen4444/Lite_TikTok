@@ -20,6 +20,9 @@ func (h *MessageHandler) GetChatMessages(c *gin.Context) {
 	to_user_id := c.Query("to_user_id")
 	token := c.Query("token")
 	pre_msg_time := c.Query("pre_msg_time")
+	if pre_msg_time == "" {
+		pre_msg_time = "0"
+	}
 	messages, err := h.s.GetChatMessages(token, to_user_id, pre_msg_time)
 	if err != nil {
 		respCode := http.StatusBadRequest

@@ -25,7 +25,7 @@ func (s *MessageService) GetChatMessages(token, to_user_id, pre_msg_time string)
 	if err != nil {
 		return nil, fmt.Errorf("token无效,请重新登录")
 	}
-	toUserID, err := strconv.Atoi(to_user_id)
+	toUserID, err := strconv.ParseInt(to_user_id, 10, 64)
 	if err != nil {
 		return nil, fmt.Errorf("用户id无效")
 	}
@@ -33,7 +33,7 @@ func (s *MessageService) GetChatMessages(token, to_user_id, pre_msg_time string)
 	if err != nil {
 		return nil, fmt.Errorf("时间戳格式错误")
 	}
-	messages, err := s.r.GetMessages(claims.UserID, int64(toUserID), preMsgTime)
+	messages, err := s.r.GetMessages(claims.UserID, toUserID, preMsgTime)
 	if err != nil {
 		return nil, fmt.Errorf("获取聊天记录失败")
 	}

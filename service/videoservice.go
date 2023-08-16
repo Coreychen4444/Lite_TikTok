@@ -66,7 +66,7 @@ func (s *VideoService) PublishVideo(fileHeader *multipart.FileHeader, title stri
 	}
 	// 创建视频文件存放路径
 	if _, err := os.Stat("../public/videofile"); os.IsNotExist(err) {
-		err = os.Mkdir("../public/videofile", 0755)
+		err = os.MkdirAll("../public/videofile", 0755)
 		if err != nil {
 			return err
 		}
@@ -89,7 +89,7 @@ func (s *VideoService) PublishVideo(fileHeader *multipart.FileHeader, title stri
 	uniqueNameWithoutExt := uniqueFileName[0 : len(uniqueFileName)-len(filepath.Ext(uniqueFileName))]
 	// 创建封面图片存放路径
 	if _, err := os.Stat("../pubilc/cover"); os.IsNotExist(err) {
-		err = os.Mkdir("../public/cover", 0755)
+		err = os.MkdirAll("../public/cover", 0755)
 		if err != nil {
 			return err
 		}

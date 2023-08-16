@@ -51,7 +51,7 @@ func (s *UserService) Register(username, password string) (int64, string, error)
 	if err != nil {
 		return -1, "", fmt.Errorf("创建用户时出错")
 	}
-	token, tknerr := GenerateToken(user.ID)
+	token, tknerr := GenerateToken(id)
 	if tknerr != nil {
 		return -1, "", fmt.Errorf("生成token时出错")
 	}

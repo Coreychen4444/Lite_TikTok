@@ -69,7 +69,7 @@ func (h *VideoHandler) GetVideoFlow(c *gin.Context) {
 func (h *VideoHandler) PublishVideo(c *gin.Context) {
 	file, err := c.FormFile("data")
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"status_code": 1, "status_msg": "获取视频文件失败"})
+		c.JSON(http.StatusBadRequest, gin.H{"status_code": 1, "status_msg": err.Error()})
 		return
 	}
 	title := c.PostForm("title")
