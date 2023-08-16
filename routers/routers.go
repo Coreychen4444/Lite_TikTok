@@ -24,7 +24,7 @@ func InitRouter(db *gorm.DB) *gin.Engine {
 	videoHandler := handler.NewVideoHandler(videoService)
 	r.GET("/douyin/feed", videoHandler.GetVideoFlow)
 	r.POST("/douyin/publish/action", videoHandler.PublishVideo)
-	r.Static("/public", "../public")
+	r.Static("/public", "./public")
 	r.GET("/douyin/publish/list", userHandler.GetUserVideoList)
 	r.POST("/douyin/favorite/action", videoHandler.LikeVideo)
 	r.GET("/douyin/favorite/list", videoHandler.GetUserLike)

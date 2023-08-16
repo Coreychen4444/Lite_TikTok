@@ -65,8 +65,8 @@ func (s *VideoService) PublishVideo(fileHeader *multipart.FileHeader, title stri
 		return fmt.Errorf("token无效, 请重新登录")
 	}
 	// 创建视频文件存放路径
-	if _, err := os.Stat("../public/videofile"); os.IsNotExist(err) {
-		err = os.MkdirAll("../public/videofile", 0755)
+	if _, err := os.Stat("./public/videofile"); os.IsNotExist(err) {
+		err = os.MkdirAll("./public/videofile", 0755)
 		if err != nil {
 			return err
 		}
@@ -75,7 +75,7 @@ func (s *VideoService) PublishVideo(fileHeader *multipart.FileHeader, title stri
 	// 生成唯一文件名
 	uniqueFileName := generateRandomString(10) + fileName
 	// 保存视频文件
-	path := "../public/videofile/" + uniqueFileName
+	path := "./public/videofile/" + uniqueFileName
 	destFile, err := os.Create(path)
 	if err != nil {
 		return fmt.Errorf("创建文件失败")
@@ -85,16 +85,17 @@ func (s *VideoService) PublishVideo(fileHeader *multipart.FileHeader, title stri
 	if err != nil {
 		return fmt.Errorf("保存文件失败")
 	}
+
 	// 制定视频封面
 	uniqueNameWithoutExt := uniqueFileName[0 : len(uniqueFileName)-len(filepath.Ext(uniqueFileName))]
 	// 创建封面图片存放路径
-	if _, err := os.Stat("../pubilc/cover"); os.IsNotExist(err) {
-		err = os.MkdirAll("../public/cover", 0755)
+	if _, err := os.Stat("./public/cover"); os.IsNotExist(err) {
+		err = os.MkdirAll("./public/cover", 0755)
 		if err != nil {
 			return err
 		}
 	}
-	coverPath := "../public/cover/" + uniqueNameWithoutExt + ".jpg"
+	coverPath := "./public/cover/" + uniqueNameWithoutExt + ".jpg"
 	// 生成封面图片
 	err = generateCoverFromVideo(path, coverPath)
 	if err != nil {
