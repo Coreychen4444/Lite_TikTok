@@ -28,7 +28,7 @@ type GetVideoFlowResponse struct {
 func (h *VideoHandler) GetVideoFlow(c *gin.Context) {
 	latest_time := c.Query("latest_time")
 	token := c.Query("token")
-	if latest_time == "" {
+	if latest_time == "0" {
 		latest_time = strconv.FormatInt(time.Now().Unix(), 10)
 	}
 	resp := &GetVideoFlowResponse{
@@ -52,7 +52,7 @@ func (h *VideoHandler) GetVideoFlow(c *gin.Context) {
 	if len(video) == 0 {
 		resMsg := "没有更多视频了"
 		resp.StatusMsg = &resMsg
-		resp.VideoList = nil
+		resp.VideoList = video
 		resp.NextTime = nil
 		c.JSON(http.StatusOK, resp)
 		return
@@ -128,7 +128,7 @@ func (h *VideoHandler) GetUserLike(c *gin.Context) {
 		return
 	}
 	if len(videos) == 0 {
-		c.JSON(http.StatusOK, gin.H{"status_code": 0, "status_msg": "该用户没有点赞的视频", "video_list": nil})
+		c.JSON(http.StatusOK, gin.H{"status_code": 0, "status_msg": "该用户没有点赞的视频", "video_list": videos})
 		return
 	}
 	c.JSON(http.StatusOK, gin.H{"status_code": 0, "status_msg": "获取列表成功", "video_list": videos})
@@ -196,7 +196,7 @@ func (h *VideoHandler) GetVideoComment(c *gin.Context) {
 		return
 	}
 	if len(comments) == 0 {
-		c.JSON(http.StatusOK, gin.H{"status_code": 0, "status_msg": "该视频没有评论", "comment_list": nil})
+		c.JSON(http.StatusOK, gin.H{"status_code": 0, "status_msg": "该视频没有评论", "comment_list": comments})
 		return
 	}
 	c.JSON(http.StatusOK, gin.H{"status_code": 0, "status_msg": "获取视频评论成功", "comment_list": comments})

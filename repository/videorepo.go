@@ -39,7 +39,7 @@ func (r *DbRepository) GetVideoListByUserId(user_id int64) ([]model.Video, error
 		return nil, err
 	}
 	var videos []model.Video
-	err = r.db.Preload("Author").Where("author_id = ?", user_id).Order("published_at desc").Find(&videos).Error
+	err = r.db.Preload("Author").Where("user_id = ?", user_id).Order("published_at desc").Find(&videos).Error
 	if err != nil {
 		return nil, err
 	}

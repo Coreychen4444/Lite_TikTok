@@ -2,6 +2,7 @@ package model
 
 import (
 	"strconv"
+	"time"
 
 	"gorm.io/gorm"
 )
@@ -17,7 +18,7 @@ type User struct {
 	IsFollow        bool   `json:"is_follow"`        // true-已关注，false-未关注
 	Name            string `json:"name"`             // 用户名称
 	Signature       string `json:"signature"`        // 个人简介
-	TotalFavorited  string `json:"total_favorited"`  // 获赞数量
+	TotalFavorited  int64  `json:"total_favorited"`  // 获赞数量
 	WorkCount       int64  `json:"work_count"`       // 作品数
 	Username        string `json:"-" gorm:"unique"`  // 注册用户名，最长32个字符
 	PasswordHash    string `json:"-"`                // 密码，最长32个字符   service层完成对应的逻辑操作
@@ -39,7 +40,7 @@ type Video struct {
 	FavoriteCount int64  `json:"favorite_count"`                  // 视频的点赞总数
 	CommentCount  int64  `json:"comment_count"`                   // 视频的评论总数
 	IsFavorite    bool   `json:"is_favorite"`                     // true-已点赞，false-未点赞
-	PublishedAt   int64  `json:"published_at" gorm:"index"`       // 视频发布时间
+	PublishedAt   int64  `json:"-" gorm:"index"`                  // 视频发布时间
 	UserID        int64  `json:"-"`                               // 视频作者id
 }
 
@@ -62,9 +63,9 @@ type Comment struct {
 
 // relation
 type Relation struct {
-	ID       int64 `json:"id" gorm:"primaryKey"`      // 关注记录唯一标识
-	AuthorID int64 `json:"following_id" gorm:"index"` // 作者ID
-	FansID   int64 `json:"follower_id" gorm:"index"`  // 粉丝ID
+	ID       int64 `json:"-" gorm:"primaryKey"` // 关注记录唯一标识
+	AuthorID int64 `json:"-" gorm:"index"`      // 作者ID
+	FansID   int64 `json:"-" gorm:"index"`      // 粉丝ID
 }
 
 // message
@@ -73,5 +74,14 @@ type Message struct {
 	FromUserID int64  `json:"from_user_id"` // 消息发送者id
 	ToUserID   int64  `json:"to_user_id"`   // 消息接收者id
 	Content    string `json:"content"`      // 消息内容
-	CreateTime int64  `json:"create_time"`  // 消息发送时间 yyyy-MM-dd HH:MM:ss
+	CreateTime string `json:"create_time"`  // 消息发送时间 yyyy-MM-dd HH:MM:ss
+}
+
+func (m *Message) AfterFind(tx *gorm.DB) (err error) {
+	t, err := time.Parse("2006-01-02 15:04:05", m.CreateTime)
+	if err != nil {
+		return err
+	}
+	m.CreateTime = strconv.FormatInt(t.Unix(), 10)
+	return nil
 }

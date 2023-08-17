@@ -75,7 +75,7 @@ func (r *DbRepository) GetUserLike(user_id int64) ([]model.Video, error) {
 		return nil, err
 	}
 	var videos []model.Video
-	err = r.db.Preload("Author").Where("id in ?", videoId).Order("published_at desc").Find(&videos).Error
+	err = r.db.Preload("Author").Where("id in (?)", videoId).Order("published_at desc").Find(&videos).Error
 	if err != nil {
 		return nil, err
 	}

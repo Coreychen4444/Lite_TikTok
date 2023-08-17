@@ -35,7 +35,7 @@ func (h *MessageHandler) GetChatMessages(c *gin.Context) {
 		return
 	}
 	if len(messages) == 0 {
-		c.JSON(http.StatusOK, gin.H{"status_code": 0, "status_msg": "已是最新消息", "message_list": nil})
+		c.JSON(http.StatusOK, gin.H{"status_code": 0, "status_msg": "已是最新消息", "message_list": messages})
 		return
 	}
 	c.JSON(http.StatusOK, gin.H{"status_code": 0, "status_msg": "获取聊天记录成功", "message_list": messages})

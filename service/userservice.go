@@ -104,6 +104,9 @@ func (s *UserService) GetUserInfo(id int64, token string) (*model.User, error) {
 		return nil, fmt.Errorf("查找用户时出错")
 	}
 	// 判断是否关注该用户
+	if id == clamis.UserID {
+		return user, nil
+	}
 	isFollow, err := s.r.IsFollow(id, clamis.UserID)
 	if err != nil {
 		return nil, fmt.Errorf("查找用户时出错")

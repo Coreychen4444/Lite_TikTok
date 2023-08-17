@@ -105,8 +105,8 @@ func (s *VideoService) PublishVideo(fileHeader *multipart.FileHeader, title stri
 	video := &model.Video{
 		Title:       title,
 		UserID:      claims.UserID,
-		PlayURL:     fmt.Sprintf("/public/videofile/%s", uniqueFileName),
-		CoverURL:    fmt.Sprintf("/public/cover/%s.jpg", uniqueNameWithoutExt),
+		PlayURL:     fmt.Sprintf("http://10.0.2.2:8080/public/videofile/%s", uniqueFileName),
+		CoverURL:    fmt.Sprintf("http://10.0.2.2:8080/public/cover/%s.jpg", uniqueNameWithoutExt),
 		PublishedAt: time.Now().UTC().Unix(),
 	}
 	err = s.r.CreateVideo(video)

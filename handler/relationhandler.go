@@ -54,7 +54,7 @@ func (h *RelationHandler) GetFollowings(c *gin.Context) {
 		return
 	}
 	if len(followings) == 0 {
-		c.JSON(http.StatusOK, gin.H{"status_code": 0, "status_msg": "暂无关注", "user_list": nil})
+		c.JSON(http.StatusOK, gin.H{"status_code": 0, "status_msg": "暂无关注", "user_list": followings})
 		return
 	}
 	c.JSON(http.StatusOK, gin.H{"status_code": 0, "status_msg": "获取关注列表成功", "user_list": followings})
@@ -76,7 +76,7 @@ func (h *RelationHandler) GetFollowers(c *gin.Context) {
 		return
 	}
 	if len(followers) == 0 {
-		c.JSON(http.StatusOK, gin.H{"status_code": 0, "status_msg": "暂无粉丝", "user_list": nil})
+		c.JSON(http.StatusOK, gin.H{"status_code": 0, "status_msg": "暂无粉丝", "user_list": followers})
 		return
 	}
 	c.JSON(http.StatusOK, gin.H{"status_code": 0, "status_msg": "获取粉丝列表成功", "user_list": followers})
@@ -98,7 +98,7 @@ func (h *RelationHandler) GetFriends(c *gin.Context) {
 		return
 	}
 	if len(friends) == 0 {
-		c.JSON(http.StatusOK, gin.H{"status_code": 0, "status_msg": "暂无好友", "user_list": nil})
+		c.JSON(http.StatusOK, gin.H{"status_code": 0, "status_msg": "暂无好友", "user_list": friends})
 		return
 	}
 	c.JSON(http.StatusOK, gin.H{"status_code": 0, "status_msg": "获取好友列表成功", "user_list": friends})

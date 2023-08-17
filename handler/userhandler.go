@@ -130,7 +130,7 @@ func (h *UserHandler) GetUserVideoList(c *gin.Context) {
 		return
 	}
 	if len(video) == 0 {
-		c.JSON(http.StatusOK, gin.H{"status_code": 0, "status_msg": "该用户没有发布任何视频", "video_list": nil})
+		c.JSON(http.StatusOK, gin.H{"status_code": 0, "status_msg": "该用户没有发布任何视频", "video_list": video})
 		return
 	}
 	c.JSON(http.StatusOK, gin.H{"status_code": 0, "status_msg": "获取用户视频列表成功", "video_list": video})

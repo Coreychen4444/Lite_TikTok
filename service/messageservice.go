@@ -54,7 +54,7 @@ func (s *MessageService) SendMessage(token, to_user_id, content string) error {
 		FromUserID: claims.UserID,
 		ToUserID:   int64(toUserID),
 		Content:    content,
-		CreateTime: time.Now().Unix(),
+		CreateTime: time.Now().Format("2006-01-02 15:04:05"),
 	}
 	err = s.r.CreateMessage(&message)
 	if err != nil {
