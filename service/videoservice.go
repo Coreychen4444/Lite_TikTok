@@ -66,6 +66,7 @@ func (s *VideoService) PublishVideo(fileHeader *multipart.FileHeader, title stri
 
 	ctx := context.Background()
 	// 创建存储客户端
+	//./booming-tooling-396306-683a3a618121.json 是密钥文件
 	client, err := storage.NewClient(ctx, option.WithCredentialsFile("./booming-tooling-396306-683a3a618121.json"))
 	if err != nil {
 		return fmt.Errorf("创建存储客户端失败")
