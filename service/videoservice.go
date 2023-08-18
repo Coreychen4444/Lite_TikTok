@@ -1,18 +1,22 @@
 package service
 
 import (
+	"context"
 	"fmt"
 	"io"
 	"math/rand"
 	"mime/multipart"
+	"net/url"
 	"os"
 	"os/exec"
 	"path/filepath"
 	"strconv"
 	"time"
 
+	"cloud.google.com/go/storage"
 	"github.com/Coreychen4444/Lite_TikTok/model"
 	"github.com/Coreychen4444/Lite_TikTok/repository"
+	"google.golang.org/api/option"
 )
 
 type VideoService struct {
@@ -54,27 +58,37 @@ func (s *VideoService) GetVideoFlow(latest_time, token string) ([]model.Video, e
 
 // 发布视频
 func (s *VideoService) PublishVideo(fileHeader *multipart.FileHeader, title string, token string) error {
-	file, err := fileHeader.Open()
-	if err != nil {
-		return fmt.Errorf("获取文件失败")
-	}
-	defer file.Close()
 	// 校验token
 	claims, err := VerifyToken(token)
 	if err != nil {
 		return fmt.Errorf("token无效, 请重新登录")
 	}
-	// 创建视频文件存放路径
+
+	ctx := context.Background()
+	// 创建存储客户端
+	client, err := storage.NewClient(ctx, option.WithCredentialsFile("./booming-tooling-396306-683a3a618121.json"))
+	if err != nil {
+		return fmt.Errorf("创建存储客户端失败")
+	}
+	defer client.Close()
+
+	file, err := fileHeader.Open()
+	if err != nil {
+		return fmt.Errorf("获取文件失败")
+	}
+	defer file.Close()
+	fileName := filepath.Base(fileHeader.Filename)
+	fileName = url.QueryEscape(fileName)
+	// 生成唯一文件名
+	uniqueFileName := generateRandomString(10) + fileName
+	// 保存视频文件
+	// 保存视频文件到本地
 	if _, err := os.Stat("./public/videofile"); os.IsNotExist(err) {
 		err = os.MkdirAll("./public/videofile", 0755)
 		if err != nil {
 			return err
 		}
 	}
-	fileName := filepath.Base(fileHeader.Filename)
-	// 生成唯一文件名
-	uniqueFileName := generateRandomString(10) + fileName
-	// 保存视频文件
 	path := "./public/videofile/" + uniqueFileName
 	destFile, err := os.Create(path)
 	if err != nil {
@@ -85,9 +99,18 @@ func (s *VideoService) PublishVideo(fileHeader *multipart.FileHeader, title stri
 	if err != nil {
 		return fmt.Errorf("保存文件失败")
 	}
+	// 保存视频文件到云端
+	const bucketName = "lite_tiktok"
+	objectName := "videofile/" + uniqueFileName
+	wc := client.Bucket(bucketName).Object(objectName).NewWriter(ctx)
+	defer wc.Close()
+	if _, err = io.Copy(wc, file); err != nil {
+		return fmt.Errorf("保存文件失败")
+	}
 
 	// 制定视频封面
 	uniqueNameWithoutExt := uniqueFileName[0 : len(uniqueFileName)-len(filepath.Ext(uniqueFileName))]
+	// 保存封面图片到本地
 	// 创建封面图片存放路径
 	if _, err := os.Stat("./public/cover"); os.IsNotExist(err) {
 		err = os.MkdirAll("./public/cover", 0755)
@@ -101,12 +124,25 @@ func (s *VideoService) PublishVideo(fileHeader *multipart.FileHeader, title stri
 	if err != nil {
 		return fmt.Errorf("生成封面失败")
 	}
+	// 保存封面图片到云端
+	coverFile, err := os.Open(coverPath)
+	if err != nil {
+		return fmt.Errorf("打开封面文件失败")
+	}
+	defer coverFile.Close()
+	objectCoverName := "cover/" + uniqueNameWithoutExt + ".jpg"
+	pc := client.Bucket(bucketName).Object(objectCoverName).NewWriter(ctx)
+	defer pc.Close()
+	if _, err = io.Copy(pc, coverFile); err != nil {
+		return fmt.Errorf("生成封面失败")
+	}
 	// 创建视频
+	// https://storage.googleapis.com/<bucket-name>/<object-path>
 	video := &model.Video{
 		Title:       title,
 		UserID:      claims.UserID,
-		PlayURL:     fmt.Sprintf("http://10.0.2.2:8080/public/videofile/%s", uniqueFileName),
-		CoverURL:    fmt.Sprintf("http://10.0.2.2:8080/public/cover/%s.jpg", uniqueNameWithoutExt),
+		PlayURL:     fmt.Sprintf("https://storage.googleapis.com/%s/%s", bucketName, objectName),
+		CoverURL:    fmt.Sprintf("https://storage.googleapis.com/%s/%s", bucketName, objectCoverName),
 		PublishedAt: time.Now().UTC().Unix(),
 	}
 	err = s.r.CreateVideo(video)

@@ -79,8 +79,8 @@ func (h *VideoHandler) PublishVideo(c *gin.Context) {
 		respCode := http.StatusBadRequest
 		if err.Error() == "token无效,请重新登录" {
 			respCode = http.StatusUnauthorized
-		} else if err.Error() == "创建视频失败" || err.Error() == "保存视频失败" || err.Error() == "生成封面失败" ||
-			err.Error() == "发布视频失败" {
+		} else if err.Error() == "创建视频失败" || err.Error() == "保存文件失败" || err.Error() == "生成封面失败" ||
+			err.Error() == "发布视频失败" || err.Error() == "创建存储客户端失败" || err.Error() == "打开封面文件失败" {
 			respCode = http.StatusInternalServerError
 		}
 		c.JSON(respCode, gin.H{"status_code": 1, "status_msg": err.Error()})

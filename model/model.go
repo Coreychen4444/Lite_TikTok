@@ -25,7 +25,7 @@ type User struct {
 }
 
 func (u *User) AfterCreate(tx *gorm.DB) (err error) {
-	u.Name = "用户" + strconv.FormatInt(u.ID, 10)
+	u.Name = u.Username
 	u.Signature = "谢谢你的关注"
 	return tx.Model(u).Updates(User{Name: u.Name, Signature: u.Signature}).Error
 }
