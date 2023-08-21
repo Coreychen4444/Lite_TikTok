@@ -43,3 +43,13 @@ func (r *DbRepository) GetUserById(id int64) (*model.User, error) {
 	}
 	return &user, nil
 }
+
+// 根据用户id获取用户列表
+func (r *DbRepository) GetUserListByIds(ids []int64) ([]model.User, error) {
+	var users []model.User
+	err := r.db.Where("id in (?)", ids).Find(&users).Error
+	if err != nil {
+		return nil, err
+	}
+	return users, nil
+}

@@ -23,11 +23,21 @@ export GOOGLE_APPLICATION_CREDENTIALS="your path/*************.json"
 其中`"your path/*************.json"`为你存放在本地的密钥路径
 
 ## 数据库配置
-确保已安装并启动mysql服务器，且已创建数据库tiktok，并且将main函数中的数据库配置改为自己的配置（用户名和密码）
+确保已安装并启动mysql服务器，且已创建数据库tiktok，并且将`repository`目录中的`repoinit.go`文件中的`InitMysql`函数中的数据库配置改为自己的配置（用户名和密码）
 ```go
 dsn := "root:44447777@tcp(127.0.0.1:3306)/tiktok_db?charset=utf8mb4&parseTime=True&loc=Local"
 ```
 其中root为用户名，44447777为密码，tiktok_db为数据库名
+
+## redis配置
+确保已安装并启动redis服务器，并且将`repository`目录中的`repoinit.go`文件中的`InitRedis`函数中的redis配置改为自己的配置（密码, 若没有给redis服务器设置密码, 默认为`""`）
+```go
+rdb := redis.NewClient(&redis.Options{
+		Addr:     "localhost:6379",
+		Password: "",
+		DB:       0,
+	})
+```
 
 ## 运行
 在项目根目录下终端运行

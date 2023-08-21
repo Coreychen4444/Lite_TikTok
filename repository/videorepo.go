@@ -19,14 +19,23 @@ func (r *DbRepository) GetVideoList(latest_time int64) ([]model.Video, error) {
 // 创建视频
 func (r *DbRepository) CreateVideo(video *model.Video) error {
 	tx := r.db.Begin()
+	var txErr error
+	defer func() {
+		if txErr != nil || tx.Commit().Error != nil {
+			tx.Rollback()
+		}
+	}()
 	if err := tx.Error; err != nil {
+		txErr = err
 		return err
 	}
 	if err := r.db.Create(video).Error; err != nil {
+		txErr = err
 		return err
 	}
 	// 更新用户投稿数
 	if err := r.db.Model(&model.User{}).Where("id = ?", video.UserID).Update("work_count", gorm.Expr("work_count + ?", 1)).Error; err != nil {
+		txErr = err
 		return err
 	}
 	return tx.Commit().Error

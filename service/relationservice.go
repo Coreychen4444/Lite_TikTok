@@ -9,11 +9,12 @@ import (
 )
 
 type RelationService struct {
-	r *repository.DbRepository
+	r   *repository.DbRepository
+	rdb *repository.RedisRepository
 }
 
-func NewRelationService(r *repository.DbRepository) *RelationService {
-	return &RelationService{r: r}
+func NewRelationService(r *repository.DbRepository, rdb *repository.RedisRepository) *RelationService {
+	return &RelationService{r: r, rdb: rdb}
 }
 
 // 关注或取消关注
@@ -81,13 +82,21 @@ func (s *RelationService) GetFriends(token, user_id string) ([]model.User, error
 	if err != nil {
 		return nil, fmt.Errorf("token无效,请重新登录")
 	}
-	userID, err := strconv.Atoi(user_id)
+	userID, err := strconv.ParseInt(user_id, 10, 64)
 	if err != nil {
 		return nil, fmt.Errorf("用户id无效")
+	}
+	friendscache, _ := s.rdb.GetFriendList(userID)
+	if len(friendscache) > 0 {
+		friends, err := s.r.GetUserListByIds(friendscache)
+		if err == nil {
+			return friends, nil
+		}
 	}
 	friends, err := s.r.GetFriendList(int64(userID))
 	if err != nil {
 		return nil, fmt.Errorf("获取好友列表失败")
 	}
+	_ = s.rdb.AddFriendList(userID, friends)
 	return friends, nil
 }

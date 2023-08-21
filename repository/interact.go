@@ -13,27 +13,37 @@ func (r *DbRepository) LikeVideo(user_id int64, video_id int64) error {
 	if err := tx.Error; err != nil {
 		return err
 	}
+	var txErr error
+	defer func() {
+		if txErr != nil || tx.Commit().Error != nil {
+			tx.Rollback()
+		}
+	}()
 	var videoLike model.VideoLike
 	videoLike.UserID = user_id
 	videoLike.VideoID = video_id
 	if err := r.db.Create(&videoLike).Error; err != nil {
-
+		txErr = err
 		return err
 	}
 	// 更新视频点赞数
 	if err := r.db.Model(&model.Video{}).Where("id = ?", video_id).Update("favorite_count", gorm.Expr("favorite_count + ?", 1)).Error; err != nil {
+		txErr = err
 		return err
 	}
 	// 更新用户点赞数
 	if err := r.db.Model(&model.User{}).Where("id = ?", user_id).Update("favorite_count", gorm.Expr("favorite_count + ?", 1)).Error; err != nil {
+		txErr = err
 		return err
 	}
 	// 更新用户获赞数
 	var authorId int64
 	if err := r.db.Model(&model.Video{}).Where("id = ?", video_id).Pluck("user_id", &authorId).Error; err != nil {
+		txErr = err
 		return err
 	}
 	if err := r.db.Model(&model.User{}).Where("id = ?", authorId).Update("total_favorited", gorm.Expr("total_favorited + ?", 1)).Error; err != nil {
+		txErr = err
 		return err
 	}
 	return tx.Commit().Error
@@ -45,24 +55,35 @@ func (r *DbRepository) DislikeVideo(user_id int64, video_id int64) error {
 	if err := tx.Error; err != nil {
 		return err
 	}
+	var txErr error
+	defer func() {
+		if txErr != nil || tx.Commit().Error != nil {
+			tx.Rollback()
+		}
+	}()
 	var videoLike model.VideoLike
 	if err := r.db.Where("user_id = ? and video_id = ?", user_id, video_id).Delete(&videoLike).Error; err != nil {
+		txErr = err
 		return err
 	}
 	// 更新视频点赞数
 	if err := r.db.Model(&model.Video{}).Where("id = ?", video_id).Update("favorite_count", gorm.Expr("favorite_count - ?", 1)).Error; err != nil {
+		txErr = err
 		return err
 	}
 	// 更新用户点赞数
 	if err := r.db.Model(&model.User{}).Where("id = ?", user_id).Update("favorite_count", gorm.Expr("favorite_count - ?", 1)).Error; err != nil {
+		txErr = err
 		return err
 	}
 	// 更新用户获赞数
 	var authorId int64
 	if err := r.db.Model(&model.Video{}).Where("id = ?", video_id).Pluck("user_id", &authorId).Error; err != nil {
+		txErr = err
 		return err
 	}
 	if err := r.db.Model(&model.User{}).Where("id = ?", authorId).Update("total_favorited", gorm.Expr("total_favorited - ?", 1)).Error; err != nil {
+		txErr = err
 		return err
 	}
 	return tx.Commit().Error
@@ -98,11 +119,19 @@ func (r *DbRepository) CreateComment(comment *model.Comment) (*model.Comment, er
 	if err := tx.Error; err != nil {
 		return nil, err
 	}
+	var txErr error
+	defer func() {
+		if txErr != nil || tx.Commit().Error != nil {
+			tx.Rollback()
+		}
+	}()
 	if err := r.db.Create(comment).Error; err != nil {
+		txErr = err
 		return nil, err
 	}
 	// 更新视频评论数
 	if err := r.db.Model(&model.Video{}).Where("id = ?", comment.Video_id).Update("comment_count", gorm.Expr("comment_count + ?", 1)).Error; err != nil {
+		txErr = err
 		return nil, err
 	}
 	if err := tx.Commit().Error; err != nil {
@@ -122,12 +151,20 @@ func (r *DbRepository) DeleteComment(comment_id int64) error {
 	if err := tx.Error; err != nil {
 		return err
 	}
+	var txErr error
+	defer func() {
+		if txErr != nil || tx.Commit().Error != nil {
+			tx.Rollback()
+		}
+	}()
 	var comment model.Comment
 	if err := r.db.Where("id = ?", comment_id).Delete(&comment).Error; err != nil {
+		txErr = err
 		return err
 	}
 	// 更新视频评论数
 	if err := r.db.Model(&model.Video{}).Where("id = ?", comment.Video_id).Update("comment_count", gorm.Expr("comment_count - ?", 1)).Error; err != nil {
+		txErr = err
 		return err
 	}
 	return tx.Commit().Error

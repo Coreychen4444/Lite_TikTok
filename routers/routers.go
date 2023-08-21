@@ -5,13 +5,15 @@ import (
 	"github.com/Coreychen4444/Lite_TikTok/repository"
 	"github.com/Coreychen4444/Lite_TikTok/service"
 	"github.com/gin-gonic/gin"
+	"github.com/go-redis/redis/v8"
 	"gorm.io/gorm"
 )
 
 // InitRouter initialize routing information
-func InitRouter(db *gorm.DB) *gin.Engine {
+func InitRouter(db *gorm.DB, rdb *redis.Client) *gin.Engine {
 	r := gin.Default()
 	repo := repository.NewDbRepository(db)
+	redis := repository.NewRedisRepository(rdb)
 	userService := service.NewUserService(repo)
 	userHandler := handler.NewUserHandler(userService)
 	/* 	r.POST("/douyin/user/register/", userHandler.Register)
@@ -33,7 +35,7 @@ func InitRouter(db *gorm.DB) *gin.Engine {
 	r.GET("/douyin/favorite/list/", videoHandler.GetUserLike)
 	r.POST("/douyin/comment/action/", videoHandler.CommentVideo)
 	r.GET("/douyin/comment/list/", videoHandler.GetVideoComment)
-	relationService := service.NewRelationService(repo)
+	relationService := service.NewRelationService(repo, redis)
 	relationHandler := handler.NewRelationHandler(relationService)
 	relation := r.Group("/douyin/relation")
 	{
