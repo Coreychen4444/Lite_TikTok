@@ -2,7 +2,9 @@ package repository
 
 import (
 	"context"
+	"fmt"
 	"log"
+	"os"
 
 	"github.com/Coreychen4444/Lite_TikTok/model"
 	"github.com/go-redis/redis/v8"
@@ -13,7 +15,8 @@ import (
 // 初始化mysql
 func InitMysql() *gorm.DB {
 	// 连接数据库(用户名和密码自己改)
-	dsn := "root:44447777@tcp(127.0.0.1:3306)/tiktok_db?charset=utf8mb4&parseTime=True&loc=Local"
+	//dsn := "root:1234567@tcp(:3306)/tiktok_db?charset=utf8mb4&parseTime=True&loc=Local"
+	dsn := fmt.Sprintf("user:1234567@tcp(%s:3306)/tiktok_db?charset=utf8mb4&parseTime=True&loc=Local", os.Getenv("MYSQL_HOST"))
 	db, err := gorm.Open(mysql.Open(dsn), &gorm.Config{})
 	if err != nil {
 		log.Fatal(err.Error() + ", failed to connect database")
@@ -31,8 +34,8 @@ func InitMysql() *gorm.DB {
 func InitRedis() *redis.Client {
 	// 连接redis
 	rdb := redis.NewClient(&redis.Options{
-		Addr:     "localhost:6379",
-		Password: "44447777",
+		Addr:     fmt.Sprintf("%s:6379", os.Getenv("REDIS_HOST")),
+		Password: "",
 		DB:       0,
 	})
 	ctx := context.Background()
